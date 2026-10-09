@@ -36,6 +36,8 @@ If the redundant channels disagree, the disagreement itself is treated as a faul
 - Self-checking Verilog testbenches
 - VCD waveform output for Surfer
 
+
+
 ## Architecture
 
 ```text
@@ -47,40 +49,47 @@ RO-PUF → PUF authenticator → AES key manager               │
                                                            └→ event manager → FIFO → AES → packetizer → UART TX
 
 UART RX → UART receiver → packet checker → CRC fault ──────┘
-Repository Structure
-rtl/
-├── top.v
-├── sensing/
-│   ├── sensor.v
-│   └── comparator.v
-├── safety/
-│   ├── dwc_logic.v
-│   ├── tamper_decision.v
-│   ├── fault_aggregator.v
-│   ├── failsafe_mux.v
-│   └── lockout_fsm.v
-├── telemetry/
-│   ├── event_manager.v
-│   ├── event_fifo.v
-│   ├── crc16.v
-│   ├── packetizer.v
-│   ├── packetizer128.v
-│   ├── packet_checker128.v
-│   ├── uart_tx.v
-│   └── uart_rx.v
-├── crypto/
-│   ├── aes128.v
-│   └── aes_key_manager.v
-└── puf/
-    ├── ro_puf.v
-    └── puf_authenticator.v
+```
 
-tb/
-└── Testbenches for individual modules and full top-level integration
 
-waves/
-└── top.vcd
-DWC Operation
+
+## Repository Structure
+
+```text
+.
+├── Makefile
+├── README.md
+├── rtl/
+│   ├── top.v
+│   ├── sensing/
+│   │   ├── sensor.v
+│   │   └── comparator.v
+│   ├── safety/
+│   │   ├── dwc_logic.v
+│   │   ├── tamper_decision.v
+│   │   ├── fault_aggregator.v
+│   │   ├── failsafe_mux.v
+│   │   └── lockout_fsm.v
+│   ├── telemetry/
+│   │   ├── event_manager.v
+│   │   ├── event_fifo.v
+│   │   ├── crc16.v
+│   │   ├── packetizer128.v
+│   │   ├── packet_checker128.v
+│   │   ├── uart_tx.v
+│   │   └── uart_rx.v
+│   ├── crypto/
+│   │   ├── aes128.v
+│   │   └── aes_key_manager.v
+│   └── puf/
+│       ├── ro_puf.v
+│       └── puf_authenticator.v
+└── tb/
+    └── Verilog testbenches
+```
+
+## DWC Operation
+
 The system uses two comparator paths:
 Comparator A result ─┐
                      XOR → mismatch
@@ -89,11 +98,15 @@ There is one DWC checker for the high-threshold alarms and another for the low-t
 assign mismatch = channel_a ^ channel_b;
 assign voted_value = channel_a & channel_b;
 A mismatch indicates that the redundant channels disagree. The two mismatch signals are combined using OR, so any disagreement raises a fault.
-Telemetry Frame
+
+## Telemetry Frame
+
 The encrypted UART packet format is:
 0xA5 | 16 AES ciphertext bytes | CRC-16 high byte | CRC-16 low byte
 0xA5 is the synchronization byte. CRC-16 detects accidental transmission errors.
-Requirements
+
+## Requirements
+
 - Icarus Verilog
 - vvp
 - Make
@@ -101,10 +114,14 @@ Requirements
 On macOS:
 brew install icarus-verilog
 brew install surfer
-Run All Tests
+
+## Run All Tests
+
 make test
 This compiles and runs all unit and integration testbenches.
-Run the Full Integration Test
+
+## Run the Full Integration Test
+
 iverilog -g2012 -s tb_top -o sim \
   $(find rtl -type f -name '*.v' | sort) \
   tb/tb_top.v
@@ -112,9 +129,13 @@ iverilog -g2012 -s tb_top -o sim \
 vvp sim
 Expected result:
 PASS top integration; waveform: waves/top.vcd
-View the Waveform
+
+## View the Waveform
+
 surfer waves/top.vcd
-Verification Coverage
+
+## Verification Coverage
+
 The test suite verifies:
 - Sensor pass-through behavior
 - Comparator high and low thresholds
@@ -132,7 +153,9 @@ The test suite verifies:
 - AES key derivation
 - AES-128 FIPS-197 known-answer vector
 - Full tamper-to-lockout telemetry flow
-Scope and Limitations
+
+## Scope and Limitations
+
 This project is verified through RTL simulation.
 The following items require target-FPGA hardware work:
 - Physical ring-oscillator PUF implementation
@@ -144,7 +167,9 @@ The following items require target-FPGA hardware work:
 - DEFCON-style FPGA LUT and routing protection
 - ICAP/DPR-based partial reconfiguration
 - Real sensor and UART electrical validation
-Future Work
+
+## Future Work
+
 - Add message authentication, such as AES-GCM or a MAC
 - Add FPGA configuration scrubbing
 - Add fault diagnosis and controlled partial reconfiguration
