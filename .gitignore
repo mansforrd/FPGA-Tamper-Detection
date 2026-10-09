@@ -1,0 +1,6 @@
+.DS_Store
+build_*
+sim
+sim_*
+waves/*.vcd
+work/cleared_simulations/
