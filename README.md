@@ -1,8 +1,8 @@
 # FPGA Tamper and Theft Detection System
 
-This project is a simulation-verified Verilog design for detecting tamper and theft conditions in a prepaid electricity meter.
+The project is a simulation verified Verilog design for detecting tamper and theft conditions in a prepaid electricity meter.
 
-The design monitors two redundant sensor paths, checks that their decisions agree, locks the system when a fault is detected, and generates an encrypted UART alert. It also includes a receive-side CRC checker, a PUF-based key path, and fail-safe output control.
+The design monitors two redundant sensor paths, checks that their decisions agree, locks the system when a fault is detected, and generates an encrypted UART alert. It also includes a receive side CRC checker, a PUF based key path, and fail-safe output control.
 
 ## What the design does
 
@@ -22,18 +22,18 @@ If the redundant channels disagree, the disagreement itself is treated as a faul
 ## Main Features
 
 - Dual redundant sensor threshold comparison
-- Duplication-with-comparison (DWC) fault detection
+- DWC fault detection
 - High and low threshold alarm detection
 - Fault aggregation and sticky fault status
-- FSM-based lockout
+- FSM based lockout
 - Fail-safe UART output control
 - RO-PUF response wrapper and authentication
-- PUF-derived AES-128 key generation
+- PUF derived AES-128 key generation
 - AES-128 encrypted telemetry
 - Event FIFO to avoid losing events while encryption is busy
 - UART transmission and reception
 - CRC-16/CCITT packet generation and validation
-- Self-checking Verilog testbenches
+- Self checking Verilog testbenches
 - VCD waveform output for Surfer
 
 
@@ -90,13 +90,18 @@ UART RX → UART receiver → packet checker → CRC fault ──────┘
 
 ## DWC Operation
 
+```text
+.
 The system uses two comparator paths:
 Comparator A result ─┐
                      XOR → mismatch
 Comparator B result ─┘
-There is one DWC checker for the high-threshold alarms and another for the low-threshold alarms.
+```
+
+There is one DWC checker for the high threshold alarms and another for the low threshold alarm.
 assign mismatch = channel_a ^ channel_b;
 assign voted_value = channel_a & channel_b;
+
 A mismatch indicates that the redundant channels disagree. The two mismatch signals are combined using OR, so any disagreement raises a fault.
 
 ## Telemetry Frame
@@ -111,14 +116,17 @@ The encrypted UART packet format is:
 - vvp
 - Make
 - Surfer waveform viewer
+
 On macOS:
+
 brew install icarus-verilog
 brew install surfer
 
 ## Run All Tests
 
 make test
-This compiles and runs all unit and integration testbenches.
+
+#This compiles and runs all unit and integration testbenches.
 
 ## Run the Full Integration Test
 
@@ -127,8 +135,11 @@ iverilog -g2012 -s tb_top -o sim \
   tb/tb_top.v
 
 vvp sim
+
 Expected result:
-PASS top integration; waveform: waves/top.vcd
+
+PASS top integration; 
+waveform: waves/top.vcd
 
 ## View the Waveform
 
@@ -137,35 +148,35 @@ surfer waves/top.vcd
 ## Verification Coverage
 
 The test suite verifies:
-- Sensor pass-through behavior
+- Sensor pass through behavior
 - Comparator high and low thresholds
 - DWC agreement and mismatch detection
 - Tamper decision latching
 - Fault aggregation
 - Fail-safe UART mux behavior
 - Lockout FSM timing
-- Event-manager packet generation
+- Event manager packet generation
 - Event FIFO operation
 - CRC-16/CCITT calculation
 - UART transmission and reception
 - Packet CRC checking
 - PUF response generation and authentication
 - AES key derivation
-- AES-128 FIPS-197 known-answer vector
-- Full tamper-to-lockout telemetry flow
+- AES-128 FIPS-197 known answer vector
+- Full tamper to lockout telemetry flow
 
 ## Scope and Limitations
 
 This project is verified through RTL simulation.
 The following items require target-FPGA hardware work:
-- Physical ring-oscillator PUF implementation
+- Physical RO-PUF implementation
 - PUF stability and uniqueness characterization
 - Secure nonvolatile PUF enrollment storage
 - FPGA pin and clock constraints
 - Timing closure
-- Configuration-memory fault injection
-- DEFCON-style FPGA LUT and routing protection
-- ICAP/DPR-based partial reconfiguration
+- Configuration memory fault injection
+- DEFCON style FPGA LUT and routing protection
+- ICAP/DPR based partial reconfiguration
 - Real sensor and UART electrical validation
 
 ## Future Work
@@ -174,5 +185,5 @@ The following items require target-FPGA hardware work:
 - Add FPGA configuration scrubbing
 - Add fault diagnosis and controlled partial reconfiguration
 - Implement persistent secure PUF enrollment storage
-- Evaluate the design against DWC, TMR, and DEFCON-style fail-safe methods
+- Evaluate the design against DWC, TMR, and DEFCON style fail-safe methods
 - Perform hardware fault-injection experiments
